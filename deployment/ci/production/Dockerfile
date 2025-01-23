@@ -1,0 +1,120 @@
+ARG WORKDIR=/opt/app
+
+# Base Stage: Upgrade npm and install / upgrade pnpm
+FROM node:16.13.0-alpine AS base
+LABEL builder=true
+
+# Dependencies Stage: Copy package.json + lock file and install dependencies
+FROM base as dependencies
+ARG WORKDIR
+WORKDIR ${WORKDIR}
+COPY package.json npm-lock. ./
+RUN  npm install node-gyp
+# Skip pnpm checking + Husky init
+RUN npm install --ignore-scripts
+
+# Builder Stage: Copy node_modules from dependencies and build it
+FROM base as builder
+ARG WORKDIR
+WORKDIR ${WORKDIR}
+COPY . .
+COPY --from=dependencies ${WORKDIR}/node_modules node_modules
+RUN npm build
+
+# Production Stage: Copy dist and package.json from builder and start the application
+FROM base as runner
+ARG WORKDIR
+
+ARG BASE_PATH=""
+ENV BASE_PATH=${BASE_PATH}
+
+
+ARG PORT=""
+ENV PORT=${PORT}
+
+ARG NODE_ENV=""
+ENV NODE_ENV=${NODE_ENV}
+
+ARG LOG_LEVEL=""
+ENV LOG_LEVEL=${LOG_LEVEL}
+
+ARG CLUSTERING=""
+ENV CLUSTERING=${CLUSTERING}
+
+# Swagger
+ARG SWAGGER_DOC_PATH=""
+ENV SWAGGER_DOC_PATH=${SWAGGER_DOC_PATH}
+
+# Database
+ARG DB_HOST=""
+ENV DB_HOST=${DB_HOST}
+
+ARG DB_PORT=""
+ENV DB_PORT=${DB_PORT}
+
+ARG DB_USER=""
+ENV DB_USER=${DB_USER}
+
+ARG DB_PASSWORD=""
+ENV DB_PASSWORD=${DB_PASSWORD}
+
+ARG DB_NAME=""
+ENV DB_NAME=${DB_NAME}
+
+# Auth
+ARG JWT_SECRET=""
+ENV JWT_SECRET=${JWT_SECRET}
+
+ARG JWT_EXPIRES_IN=""
+ENV JWT_EXPIRES_IN=${JWT_EXPIRES_IN}
+
+ARG JWT_REFRESH_SECRET=""
+ENV JWT_REFRESH_SECRET=${JWT_REFRESH_SECRET}
+
+ARG JWT_REFRESH_EXPIRES_IN=""
+ENV JWT_REFRESH_EXPIRES_IN=${JWT_REFRESH_EXPIRES_IN}
+
+ARG COOKIE_SECRET=""
+ENV COOKIE_SECRET=${COOKIE_SECRET}
+
+# Mail
+ARG MAILGUN_DOMAIN=""
+ENV MAILGUN_DOMAIN=${MAILGUN_DOMAIN}
+
+ARG MAILGUN_API_KEY=""
+ENV MAILGUN_API_KEY=${MAILGUN_API_KEY}
+
+ARG PRIMARY_EMAIL=""
+ENV PRIMARY_EMAIL=${PRIMARY_EMAIL}
+
+ARG USE_MAILGUN_TEMPLATE=""
+ENV USE_MAILGUN_TEMPLATE=${USE_MAILGUN_TEMPLATE}
+
+ARG MAILGUN_DEFAULT_TEMPLATE_NAME=""
+ENV MAILGUN_DEFAULT_TEMPLATE_NAME=${MAILGUN_DEFAULT_TEMPLATE_NAME}
+
+# Redis
+ARG REDIS_HOST=""
+ENV REDIS_HOST=${REDIS_HOST}
+
+ARG REDIS_PORT=""
+ENV REDIS_PORT=${REDIS_PORT}
+
+ARG REDIS_PASSWORD=""
+ENV REDIS_PASSWORD=${REDIS_PASSWORD}
+
+# URLs
+ARG FRONTEND_URL=""
+ENV FRONTEND_URL=${FRONTEND_URL}
+
+ARG BACKEND_URL=""
+ENV BACKEND_URL=${BACKEND_URL}
+
+WORKDIR ${WORKDIR}
+COPY --from=builder   ${WORKDIR}/node_modules ./node_modules
+COPY --from=builder ${WORKDIR}/dist ./dist
+COPY --from=builder ${WORKDIR}/package.json package.json
+
+EXPOSE 3000
+
+CMD ["node", "dist/main"]

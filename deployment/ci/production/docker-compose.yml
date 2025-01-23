@@ -1,0 +1,39 @@
+version: '3.9'
+
+services:
+  nestjs:
+    image: ''
+    restart: always
+    command: >
+      sh -c "npx typeorm-ts-node-esm migration:run -d ./dist/modules/app/data-source.js && node ./node_modules/typeorm-extension/dist/cli/index.js seed -d ./dist/modules/app/seeder.js && node dist/main"
+
+  nginx:
+    image: nginx:1.14.2-alpine
+    restart: always
+    volumes:
+      - ./deployment/nginx/production/:/etc/nginx/conf.d/
+      - ./deployment/certbot/production/dhparam:/etc/nginx/dhparam
+      - ./deployment/certbot/production/conf/:/etc/nginx/ssl/
+      - ./deployment/certbot/production/data/:/usr/share/nginx/html/letsencrypt
+    ports:
+      - 80:80
+      - 443:443
+    depends_on:
+      - nestjs
+  #     - certbot
+
+  # certbot:
+  #   image: certbot/certbot:latest
+  #   command: certonly --webroot --webroot-path=/usr/share/nginx/html/letsencrypt --email bob.were@touchinspiration.com --agree-tos --no-eff-email -d api.azanzi.touchinspiration.net
+  #   volumes:
+  #     - ./deployment/certbot/production/conf/:/etc/letsencrypt
+  #     - ./deployment/certbot/production/logs/:/var/log/letsencrypt
+  #     - ./deployment/certbot/production/data/:/usr/share/nginx/html/letsencrypt
+
+volumes:
+  redis_storage:
+    driver: local
+networks:
+  api:
+    name: api_network
+    driver: bridge
