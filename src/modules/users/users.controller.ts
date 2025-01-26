@@ -50,7 +50,6 @@ export class UsersController {
   }
 
   @Get(':id')
-  @Serialize(User)
   async getUser(
     @Param('id') id: string,
   ): Promise<User> {

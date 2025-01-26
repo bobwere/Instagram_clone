@@ -1,4 +1,4 @@
-# NestJS
+# Photo Sharing App
 
 ## 🔥 Features
 
@@ -10,45 +10,15 @@
 
 - ### 📏 Fully Integrated to Coding Quality Tools
 
-## 📓 Commands
 
-### Commands Description
+### Running Application for Development using Docker
 
-```bash
-# build the app
-$ pnpm build
-
-# format the code
-$ pnpm lint
-
-# start the app
-$ pnpm start
-
-# run in development mode
-$ pnpm start:dev || pnpm dev
-
-# build the app and run it in production mode
-$ pnpm start:prod || pnpm prod
-
-# generate Swagger JSON schema
-$ pnpm swagger
-
-# test both unit test and e2e test
-$ pnpm test
-
-# test all the e2e test
-$ pnpm test:e2e
-
-# test all the unit test
-$ pnpm test:unit
-```
-
-### Running Application for Development
+Prerequiste ensure you have docker installed on your system
 
 ```bash
 $ git clone <repo>
 
-$ pnpm install
+$ npm install
 
 # Fill in require information in .env file
 $ cp .env.example .env
@@ -56,8 +26,22 @@ $ cp .env.example .env
 # Linux / Mac users may require (allow git hook script executable)
 $ chmod +x .husky -R
 
-$ pnpm dev
+# run all required containers postgresdb, nestjs app, pgadmin
+$ docker compose up -d
+
+# run migrations
+$ npm run migration:run
+
+# hit endpoints on postman
 ```
+
+### API Documentation || Postman Collection
+A Postman collection that includes:
+  ■ All API endpoints with detailed descriptions.
+  ■ Example request payloads and responses.
+  ■ Authentication flow
+
+- [API Documentation || Postman Collection] (https://documenter.getpostman.com/view/7996235/2sA3QtfXGP)
 
 ## ⭐ Coding Quality Tools Details Description
 
@@ -182,24 +166,6 @@ We use [Joi](https://joi.dev/) library for the validation, which is recommended 
 ├── src
 |   └── app.config.ts
 ```
-
-### HTTP Request
-
-Since [@nestjs/axios](https://github.com/nestjs/axios) default return [Observable](https://rxjs.dev/guide/observable), it does not fit for the common use case (Promise based), so we use a custom module to implement secondary encapsulation of native Axios library, also extract .data from the response to prevent .data.data.data... chaining.
-
-_Reference:_
-
-- [Author Recommandation](https://github.com/nestjs/nest/issues/2613#issuecomment-513141287)
-
-### Pino Logger
-
-We used [nestjs-pino](https://github.com/iamolegga/nestjs-pino) to auto-log every request metadata and response time. We also centralized Pino config in `app.config.ts` for `main.js` reuse it.
-
-### Swagger
-
-[@nestjs/swagger](https://github.com/nestjs/swagger) allow you to auto-generate the API document, but here we decouple the document and the service. You can run `pnpm swagger` to generate the schema and put it into [Swagger UI](https://github.com/swagger-api/swagger-ui) to host your API document as a static page. We have two examples in `app.controller.ts` to show you how to integrate the Google JSON response format. We also have a GitHub Action example to auto-update the schema and host it to the GitHub Pages. If you do not want this setup, you can just follow [NestJS official guideline](https://docs.nestjs.com/openapi/introduction) to host your document inside the service.
-
-![Swagger UI Final Output](https://gateway.pinata.cloud/ipfs/QmWVxHGQCJsHER1HLiNpMod67Qys96xN8vULhroFWfXv7v)
 
 ### Docker Containerization
 

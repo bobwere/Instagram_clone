@@ -12,7 +12,6 @@ import { Feed } from '@/domain/feed.entity';
 import { Notification } from '@/domain/notification.entity';
 import { NotificationService } from '@/modules/notification/services/notification.service';
 import { NotificationType } from '@/core/shared/enums/notification-type';
-import { UsersService } from '@/modules/users/users.service';
 import { User } from '@/domain/user.entity';
 
 
@@ -25,7 +24,8 @@ export class LikeService {
     private readonly feedRepository: Repository<Feed>,
     @InjectRepository(User)
     private readonly userRepository: Repository<User>,
-    private readonly notificationService: NotificationService,
+    @InjectRepository(Notification)
+    private readonly notificationRepository: Repository<Notification>,
   ) {}
 
   async create(userId: string, createLikeDto: CreateLikeDto): Promise<Like> {
@@ -65,11 +65,17 @@ export class LikeService {
 
     const savedLike = await this.likeRepository.save(like);
 
-    await this.notificationService.createNotification(
-    photo.user_id,
-    `${user.name} has liked your photo`,
-    NotificationType.LIKE,
-    );
+    console.log('photo.user_id', photo.user_id);
+    console.log('user.name', user.name);
+
+    const notification = this.notificationRepository.create({
+      user_id: photo.user_id,
+      type: NotificationType.LIKE,
+      content: `${user.name} has liked your photo`,
+      read: false,
+    });
+
+    await this.notificationRepository.save(notification);
 
     return savedLike;
   }
@@ -106,11 +112,14 @@ export class LikeService {
 
    await this.likeRepository.remove(like);
 
-    await this.notificationService.createNotification(
-      photo.user_id,
-      `${user.name} has unliked your photo`,
-      NotificationType.LIKE,
-      );
+      const notification = this.notificationRepository.create({
+        user_id: photo.user_id,
+        type: NotificationType.LIKE,
+        content: `${user.name} has unliked your photo`,
+        read: false,
+      });
+  
+      await this.notificationRepository.save(notification);
   }
 
   async findByPhotoId(photoId: string): Promise<LikeResponseDto[]> {

@@ -5,9 +5,9 @@ import { CreateCommentDto } from '../dtos/create-comment.dto';
 import { CommentResponseDto } from '../dtos/comment-response.dto';
 import { Feed } from '@/domain/feed.entity';
 import { Comment } from '@/domain/comment.entity';
-import { NotificationService } from '@/modules/notification/services/notification.service';
 import { User } from '@/domain/user.entity';
 import { NotificationType } from '@/core/shared/enums/notification-type';
+import { Notification } from '@/domain/notification.entity';
 
 @Injectable()
 export class CommentService {
@@ -16,7 +16,8 @@ export class CommentService {
     private readonly commentRepository: Repository<Comment>,
     @InjectRepository(Feed)
     private readonly feedRepository: Repository<Feed>,
-    private readonly notificationService: NotificationService,
+    @InjectRepository(Notification)
+    private readonly notificationRepository: Repository<Notification>,
     @InjectRepository(User)
     private readonly userRepository: Repository<User>,
   ) {}
@@ -50,12 +51,14 @@ export class CommentService {
 
      this.commentRepository.save(savedComment);
   
+    const notification = this.notificationRepository.create({
+      user_id: photo.user_id,
+      type: NotificationType.COMMENT,
+      content:    `${user.name} has commented on your photo`,
+      read: false,
+    });
 
-    await this.notificationService.createNotification(
-    photo.user_id,
-    `${user.name} has commented on your photo`,
-    NotificationType.COMMENT,
-    );
+    await this.notificationRepository.save(notification);
 
     return savedComment;
   }

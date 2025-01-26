@@ -8,12 +8,12 @@ import { Like } from '@/domain/like.entity';
 import { Feed } from '@/domain/feed.entity';
 import { Comment } from '@/domain/comment.entity';
 import { User } from '@/domain/user.entity';
-import { NotificationModule } from '../notification/notification.module';
+import { Notification } from '@/domain/notification.entity';
+
 
 @Module({
   imports: [
-    NotificationModule,
-    TypeOrmModule.forFeature([Like, Comment, Feed, User])],
+    TypeOrmModule.forFeature([Like, Comment, Feed, User, Notification])],
   providers: [LikeService, CommentService],
   controllers: [LikeController, CommentController],
   exports: [LikeService, CommentService],
